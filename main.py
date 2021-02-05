@@ -1,6 +1,5 @@
 #!/usr/bin/env
 
-import time
 from moviepy.editor import *
 from pytube import YouTube
 import urllib.request
@@ -14,8 +13,6 @@ import re
 
 class Config:
     DOWNLOAD_CAPACITY = 10
-    # parallel processing - Future feature
-    PARALLEL = False
     downloaded_path = cur_path.replace("main.py", "mp4_audio/")
     converted_path = cur_path.replace("main.py", "mp3_audio/")
 
@@ -29,6 +26,7 @@ def searchYoutube():
 
         html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={search_entry}&sp=EgQQARgB")
         html = html.read().decode()
+
         print("[*] Getting Videos IDs...")
         video_ids = re.findall(r"watch\?v=(\S{11})", html)[0:Config.DOWNLOAD_CAPACITY]
 
@@ -39,16 +37,11 @@ def searchYoutube():
         return video_ids
 
     except:
-        print("[*] Somenthing Went Wrong...")
+        print("[*] Somenthing Went Wrong!")
         print("[*] Exiting Program...")
         exit(0)
 
        
-
-def search_sanitizer(search_result):
-    pass
-
-
 
 def downloadVideo(video_list):
     print("[*] Downloading videos...")
@@ -100,6 +93,6 @@ def videoConvert():
         print("[*] Something Went Wrong!")
 
 
-# video_ids = searchYoutube()
-# downloadVideo(video_ids)
+video_ids = searchYoutube()
+downloadVideo(video_ids)
 videoConvert()

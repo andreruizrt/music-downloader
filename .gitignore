@@ -1,2 +1,2 @@
-# ignore all mp4 files *.mp4
-# ignore all mp3 files *.mp3
+audio/*
+downloads/*
