@@ -1,64 +1,75 @@
-#!/usr/bin/env
+#!/usr/bin/python
 
 from moviepy.editor import *
 from pytube import YouTube
 import urllib.request
 
 import os
-import sys
-cur_path = os.path.realpath(__file__)
+import time
 
 import re
 
 
 class Config:
-    DOWNLOAD_CAPACITY = 10
-    downloaded_path = cur_path.replace("main.py", "mp4_audio/")
-    converted_path = cur_path.replace("main.py", "mp3_audio/")
+    DOWNLOAD_CAPACITY = 15
+    link = False
+
+            
 
 def searchYoutube():
     search_entry = ""
+    
+    if Config.link == True:
+        search_entry = input("Youtube ID: ")
+        search_entry = [search_entry,]
+        return search_entry
 
-    try:
+    else:
         search_entry = input("Search Term: ")
-        search_entry = search_entry.replace(' ', '+')
-        # print("You wrote: {}".format(search_entry))
 
-        html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={search_entry}&sp=EgQQARgB")
-        html = html.read().decode()
+        try:
 
-        print("[*] Getting Videos IDs...")
-        video_ids = re.findall(r"watch\?v=(\S{11})", html)[0:Config.DOWNLOAD_CAPACITY]
+            search_entry = search_entry.replace(' ', '+')
+            # print("You wrote: {}".format(search_entry))
 
-        for id, value in enumerate(video_ids):
-            yt = YouTube(f'https://youtube.com/watch?v={value}&sp=EgQQARgB')
-            print(id, value, "\t", yt.title)
-            
-        return video_ids
+            html = urllib.request.urlopen(f"https://www.youtube.com/results?search_query={search_entry}&sp=EgQQARgB")
+            html = html.read().decode()
 
-    except:
-        print("[*] Somenthing Went Wrong!")
-        print("[*] Exiting Program...")
-        exit(0)
+            print("[*] Getting Videos IDs...\n")
+            video_ids = re.findall(r"watch\?v=(\S{11})", html)[0:Config.DOWNLOAD_CAPACITY]
+
+            for id, value in enumerate(video_ids):
+                yt = YouTube(f'https://youtube.com/watch?v={value}&sp=EgQQARgB')
+                print(id, value, "\t", yt.title)
+                
+            return video_ids
+
+        except:
+
+            print("[*] Somenthing Went Wrong! Exiting...")
+            exit(0)
 
        
 
 def downloadVideo(video_list):
-    print("[*] Downloading videos...")
+
+    print("[*] Downloading videos...\n")
+
     for video in video_list:
         try:
             print(f"[*] Downloading Video ID: {video}")
             yt = YouTube(f'https://youtube.com/watch?v={video}&sp=EgQQARgB')
             print(f"[*] Video Title: {yt.title}")
-            # print("[*] Getting The Audio... {}".format(yt.streams.get_audio_only().download(Config.downloaded_path)))
+            # print("[*] Getting The Audio... {}".format(yt.streams.get_audio_only().download("./downloads/""))
             yt.streams.first().download("./downloads/")            
         except:
             print("[*] Something Went Wrong!")
         finally:
-            print("[*] Exiting Video Download Function")
+            print("[*] Success! Video Downloaded!")
 
 
 def videoConvert():
+    print("[*] Converting Videos...\n")
     name_video = list()
     dir_entries = os.scandir('downloads/')
     
@@ -68,31 +79,47 @@ def videoConvert():
 
     try:    
         if not name_video:
-            print("[*] A pasta esta vazia!")
+            print("[*] The folder is empty!")
             exit(0)
         else:
             for video in name_video:
-                # mp4_file = './downloads/' + video
-                # print(mp4_file)
-                # mp3_file = './downloads/' + video
-                # mp3_file = str(mp3_file).replace('4', '3')
-                # print(mp3_file)
-
                 print("[*] Tentando Arquivo:", video)
 
                 videoclip = VideoFileClip("./downloads/{}".format(video))
                 print("[*] Salvando Arquivo...")
-
                 audioclip = videoclip.audio
-                audioclip.write_audiofile("./audio/{}".format(video).replace('4', '3'))
-
-                videoclip.close()
-                audioclip.close()
+                
+                try:
+                    audioclip.write_audiofile("./audio/{}".format(video).replace('4', '3'))
+                except:
+                    video = "audio_{}.mp3".format(round(time.time() * 1000))
+                    print("[*] Changing video name to:", video)
+                    audioclip.write_audiofile("./audio/{}".format(video))
+                finally:
+                    videoclip.close()
+                    audioclip.close()
 
     except:
         print("[*] Something Went Wrong!")
+        exit(0)
 
 
-video_ids = searchYoutube()
-downloadVideo(video_ids)
+def deletingFolder():
+    folder_name = "./downloads/"
+    
+    try:
+        os.system("rm -rf {}".format(folder_name))
+    except:
+        print("[*] It was not possible delete!", folder_name)
+
+
+
+def option_menu():
+    pass
+
+
+
+video_id = searchYoutube()
+downloadVideo(video_id)
 videoConvert()
+deletingFolder()
