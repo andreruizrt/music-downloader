@@ -1,2 +1,2 @@
 # MUSIC DOWNLOAD
- * An Easy way to download your playlist
+ * An easy way to download your playlist
